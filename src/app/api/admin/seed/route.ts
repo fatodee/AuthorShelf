@@ -8,57 +8,143 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // Create tables
+    // Create tables — each in its own execute call (Neon doesn't support multiple statements)
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS admin_users (
-        id SERIAL PRIMARY KEY, email VARCHAR(255) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL,
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        name VARCHAR(255) NOT NULL,
         created_at TIMESTAMP DEFAULT NOW() NOT NULL
-      );
+      )
+    `);
+
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS site_settings (
-        id SERIAL PRIMARY KEY, key VARCHAR(255) UNIQUE NOT NULL, value TEXT
-      );
+        id SERIAL PRIMARY KEY,
+        key VARCHAR(255) UNIQUE NOT NULL,
+        value TEXT,
+        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+      )
+    `);
+
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS author_profile (
-        id SERIAL PRIMARY KEY, name VARCHAR(255), photo TEXT, bio TEXT,
-        achievements TEXT, facebook_url TEXT, instagram_url TEXT, x_url TEXT,
-        linkedin_url TEXT, youtube_url TEXT, website_url TEXT
-      );
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        bio TEXT,
+        photo TEXT,
+        achievements TEXT,
+        facebook_url TEXT,
+        instagram_url TEXT,
+        x_url TEXT,
+        linkedin_url TEXT,
+        youtube_url TEXT,
+        website_url TEXT,
+        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+      )
+    `);
+
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS categories (
-        id SERIAL PRIMARY KEY, name VARCHAR(255) NOT NULL, slug VARCHAR(255) UNIQUE NOT NULL,
-        description TEXT, image TEXT, sort_order INTEGER DEFAULT 0
-      );
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) UNIQUE NOT NULL,
+        description TEXT,
+        image TEXT,
+        sort_order INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL
+      )
+    `);
+
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS books (
-        id SERIAL PRIMARY KEY, title VARCHAR(500) NOT NULL, slug VARCHAR(500) UNIQUE NOT NULL,
-        description TEXT, author_note TEXT, category_id INTEGER REFERENCES categories(id),
-        cover_image TEXT, gallery_images JSONB DEFAULT '[]', featured BOOLEAN DEFAULT false,
-        book_type VARCHAR(50) DEFAULT 'series', status VARCHAR(50) DEFAULT 'draft',
-        meta_title VARCHAR(500), meta_description TEXT, views INTEGER DEFAULT 0,
-        published_at TIMESTAMP, created_at TIMESTAMP DEFAULT NOW()
-      );
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(500) NOT NULL,
+        slug VARCHAR(500) UNIQUE NOT NULL,
+        description TEXT,
+        author_note TEXT,
+        category_id INTEGER REFERENCES categories(id),
+        cover_image TEXT,
+        gallery_images JSONB DEFAULT '[]',
+        featured BOOLEAN DEFAULT false,
+        book_type VARCHAR(50) DEFAULT 'series',
+        status VARCHAR(20) DEFAULT 'draft' NOT NULL,
+        meta_title TEXT,
+        meta_description TEXT,
+        views INTEGER DEFAULT 0,
+        published_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+      )
+    `);
+
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS chapters (
-        id SERIAL PRIMARY KEY, book_id INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE,
-        title VARCHAR(500) NOT NULL, slug VARCHAR(500) NOT NULL, content TEXT,
-        chapter_image TEXT, chapter_order INTEGER DEFAULT 0, status VARCHAR(50) DEFAULT 'draft',
-        views INTEGER DEFAULT 0, published_at TIMESTAMP, created_at TIMESTAMP DEFAULT NOW()
-      );
+        id SERIAL PRIMARY KEY,
+        book_id INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+        title VARCHAR(500) NOT NULL,
+        slug VARCHAR(500) NOT NULL,
+        content TEXT,
+        chapter_image TEXT,
+        chapter_order INTEGER DEFAULT 1 NOT NULL,
+        status VARCHAR(20) DEFAULT 'draft' NOT NULL,
+        views INTEGER DEFAULT 0,
+        published_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+      )
+    `);
+
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS media (
-        id SERIAL PRIMARY KEY, filename VARCHAR(500), path TEXT NOT NULL,
-        mime_type VARCHAR(100), size INTEGER DEFAULT 0, created_at TIMESTAMP DEFAULT NOW()
-      );
+        id SERIAL PRIMARY KEY,
+        filename VARCHAR(500) NOT NULL,
+        path TEXT NOT NULL,
+        mime_type VARCHAR(100),
+        size INTEGER,
+        alt TEXT,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL
+      )
+    `);
+
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS blog_posts (
-        id SERIAL PRIMARY KEY, title VARCHAR(500) NOT NULL, slug VARCHAR(500) UNIQUE NOT NULL,
-        excerpt TEXT, content TEXT, featured_image TEXT, tags TEXT,
-        status VARCHAR(50) DEFAULT 'draft', views INTEGER DEFAULT 0,
-        published_at TIMESTAMP, created_at TIMESTAMP DEFAULT NOW()
-      );
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(500) NOT NULL,
+        slug VARCHAR(500) UNIQUE NOT NULL,
+        excerpt TEXT,
+        content TEXT,
+        featured_image TEXT,
+        tags TEXT,
+        status VARCHAR(20) DEFAULT 'draft' NOT NULL,
+        meta_title TEXT,
+        meta_description TEXT,
+        views INTEGER DEFAULT 0,
+        published_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+      )
+    `);
+
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS page_views (
-        id SERIAL PRIMARY KEY, page_type VARCHAR(50), page_slug VARCHAR(500),
-        viewed_at TIMESTAMP DEFAULT NOW()
-      );
+        id SERIAL PRIMARY KEY,
+        page_type VARCHAR(50) NOT NULL,
+        page_id INTEGER,
+        page_slug VARCHAR(500),
+        viewed_at TIMESTAMP DEFAULT NOW() NOT NULL
+      )
+    `);
+
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS page_toggles (
-        id SERIAL PRIMARY KEY, page_key VARCHAR(100) UNIQUE NOT NULL,
-        label VARCHAR(255) NOT NULL, enabled BOOLEAN DEFAULT true
-      );
+        id SERIAL PRIMARY KEY,
+        page_key VARCHAR(100) UNIQUE NOT NULL,
+        enabled BOOLEAN DEFAULT true NOT NULL,
+        label VARCHAR(255),
+        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+      )
     `);
 
     // Check if already seeded
