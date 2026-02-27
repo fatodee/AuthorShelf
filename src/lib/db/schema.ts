@@ -1,14 +1,13 @@
 import { pgTable, serial, text, varchar, integer, boolean, timestamp, jsonb } from 'drizzle-orm/pg-core';
-
 // ── Admin Users ──────────────────────────────────
 export const adminUsers = pgTable('admin_users', {
   id: serial('id').primaryKey(),
   email: varchar('email', { length: 255 }).notNull().unique(),
   password: varchar('password', { length: 255 }).notNull(),
   name: varchar('name', { length: 255 }).notNull(),
+  role: varchar('role', { length: 50 }).default('editor').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
-
 // ── Site Settings (key-value store) ──────────────
 export const siteSettings = pgTable('site_settings', {
   id: serial('id').primaryKey(),
@@ -16,7 +15,6 @@ export const siteSettings = pgTable('site_settings', {
   value: text('value'),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
-
 // ── Author Profile ───────────────────────────────
 export const authorProfile = pgTable('author_profile', {
   id: serial('id').primaryKey(),
@@ -32,7 +30,6 @@ export const authorProfile = pgTable('author_profile', {
   websiteUrl: text('website_url'),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
-
 // ── Categories ───────────────────────────────────
 export const categories = pgTable('categories', {
   id: serial('id').primaryKey(),
@@ -43,7 +40,6 @@ export const categories = pgTable('categories', {
   sortOrder: integer('sort_order').default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
-
 // ── Books ────────────────────────────────────────
 export const books = pgTable('books', {
   id: serial('id').primaryKey(),
@@ -64,7 +60,6 @@ export const books = pgTable('books', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
-
 // ── Chapters ─────────────────────────────────────
 export const chapters = pgTable('chapters', {
   id: serial('id').primaryKey(),
@@ -80,7 +75,6 @@ export const chapters = pgTable('chapters', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
-
 // ── Media Library ────────────────────────────────
 export const media = pgTable('media', {
   id: serial('id').primaryKey(),
@@ -91,7 +85,6 @@ export const media = pgTable('media', {
   alt: text('alt'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
-
 // ── Blog Posts ───────────────────────────────────
 export const blogPosts = pgTable('blog_posts', {
   id: serial('id').primaryKey(),
@@ -109,7 +102,6 @@ export const blogPosts = pgTable('blog_posts', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
-
 // ── Page Views (analytics) ───────────────────────
 export const pageViews = pgTable('page_views', {
   id: serial('id').primaryKey(),
@@ -118,7 +110,6 @@ export const pageViews = pgTable('page_views', {
   pageSlug: varchar('page_slug', { length: 500 }),
   viewedAt: timestamp('viewed_at').defaultNow().notNull(),
 });
-
 // ── Page Visibility Toggles ──────────────────────
 export const pageToggles = pgTable('page_toggles', {
   id: serial('id').primaryKey(),

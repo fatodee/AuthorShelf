@@ -1,7 +1,6 @@
 import { db } from './db';
 import { siteSettings, pageToggles } from './db/schema';
 import { eq } from 'drizzle-orm';
-
 export async function getSetting(key: string): Promise<string | null> {
   try {
     const rows = await db.select().from(siteSettings).where(eq(siteSettings.key, key)).limit(1);
@@ -10,7 +9,6 @@ export async function getSetting(key: string): Promise<string | null> {
     return null;
   }
 }
-
 export async function getSettings(keys: string[]): Promise<Record<string, string | null>> {
   const result: Record<string, string | null> = {};
   try {
@@ -24,7 +22,6 @@ export async function getSettings(keys: string[]): Promise<Record<string, string
   }
   return result;
 }
-
 export async function getAllSettings(): Promise<Record<string, string | null>> {
   try {
     const rows = await db.select().from(siteSettings);
@@ -37,7 +34,6 @@ export async function getAllSettings(): Promise<Record<string, string | null>> {
     return {};
   }
 }
-
 export async function setSetting(key: string, value: string | null): Promise<void> {
   const existing = await db.select().from(siteSettings).where(eq(siteSettings.key, key)).limit(1);
   if (existing.length > 0) {
@@ -46,7 +42,6 @@ export async function setSetting(key: string, value: string | null): Promise<voi
     await db.insert(siteSettings).values({ key, value, updatedAt: new Date() });
   }
 }
-
 export async function getPageToggle(pageKey: string): Promise<boolean> {
   try {
     const rows = await db.select().from(pageToggles).where(eq(pageToggles.pageKey, pageKey)).limit(1);
@@ -55,7 +50,6 @@ export async function getPageToggle(pageKey: string): Promise<boolean> {
     return true;
   }
 }
-
 export async function getAllPageToggles(): Promise<Record<string, boolean>> {
   try {
     const rows = await db.select().from(pageToggles);
