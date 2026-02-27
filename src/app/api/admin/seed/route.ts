@@ -3,160 +3,77 @@ import { db } from '@/lib/db';
 import { adminUsers, siteSettings, authorProfile, categories, books, chapters, blogPosts, pageToggles } from '@/lib/db/schema';
 import { hashPassword } from '@/lib/auth';
 import { sql } from 'drizzle-orm';
-
 export const dynamic = 'force-dynamic';
-
 export async function GET() {
   try {
-    // Create tables — each in its own execute call (Neon doesn't support multiple statements)
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS admin_users (
-        id SERIAL PRIMARY KEY,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
-        name VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW() NOT NULL
-      )
-    `);
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS site_settings (
-        id SERIAL PRIMARY KEY,
-        key VARCHAR(255) UNIQUE NOT NULL,
-        value TEXT,
-        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
-      )
-    `);
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS author_profile (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        bio TEXT,
-        photo TEXT,
-        achievements TEXT,
-        facebook_url TEXT,
-        instagram_url TEXT,
-        x_url TEXT,
-        linkedin_url TEXT,
-        youtube_url TEXT,
-        website_url TEXT,
-        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
-      )
-    `);
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS categories (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        slug VARCHAR(255) UNIQUE NOT NULL,
-        description TEXT,
-        image TEXT,
-        sort_order INTEGER DEFAULT 0,
-        created_at TIMESTAMP DEFAULT NOW() NOT NULL
-      )
-    `);
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS books (
-        id SERIAL PRIMARY KEY,
-        title VARCHAR(500) NOT NULL,
-        slug VARCHAR(500) UNIQUE NOT NULL,
-        description TEXT,
-        author_note TEXT,
-        category_id INTEGER REFERENCES categories(id),
-        cover_image TEXT,
-        gallery_images JSONB DEFAULT '[]',
-        featured BOOLEAN DEFAULT false,
-        book_type VARCHAR(50) DEFAULT 'series',
-        status VARCHAR(20) DEFAULT 'draft' NOT NULL,
-        meta_title TEXT,
-        meta_description TEXT,
-        views INTEGER DEFAULT 0,
-        published_at TIMESTAMP,
-        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
-        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
-      )
-    `);
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS chapters (
-        id SERIAL PRIMARY KEY,
-        book_id INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE,
-        title VARCHAR(500) NOT NULL,
-        slug VARCHAR(500) NOT NULL,
-        content TEXT,
-        chapter_image TEXT,
-        chapter_order INTEGER DEFAULT 1 NOT NULL,
-        status VARCHAR(20) DEFAULT 'draft' NOT NULL,
-        views INTEGER DEFAULT 0,
-        published_at TIMESTAMP,
-        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
-        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
-      )
-    `);
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS media (
-        id SERIAL PRIMARY KEY,
-        filename VARCHAR(500) NOT NULL,
-        path TEXT NOT NULL,
-        mime_type VARCHAR(100),
-        size INTEGER,
-        alt TEXT,
-        created_at TIMESTAMP DEFAULT NOW() NOT NULL
-      )
-    `);
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS blog_posts (
-        id SERIAL PRIMARY KEY,
-        title VARCHAR(500) NOT NULL,
-        slug VARCHAR(500) UNIQUE NOT NULL,
-        excerpt TEXT,
-        content TEXT,
-        featured_image TEXT,
-        tags TEXT,
-        status VARCHAR(20) DEFAULT 'draft' NOT NULL,
-        meta_title TEXT,
-        meta_description TEXT,
-        views INTEGER DEFAULT 0,
-        published_at TIMESTAMP,
-        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
-        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
-      )
-    `);
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS page_views (
-        id SERIAL PRIMARY KEY,
-        page_type VARCHAR(50) NOT NULL,
-        page_id INTEGER,
-        page_slug VARCHAR(500),
-        viewed_at TIMESTAMP DEFAULT NOW() NOT NULL
-      )
-    `);
-
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS page_toggles (
-        id SERIAL PRIMARY KEY,
-        page_key VARCHAR(100) UNIQUE NOT NULL,
-        enabled BOOLEAN DEFAULT true NOT NULL,
-        label VARCHAR(255),
-        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
-      )
-    `);
-
+    // Create tables (Neon requires one statement per execute)
+    await db.execute(sql`CREATE TABLE IF NOT EXISTS admin_users (
+      id SERIAL PRIMARY KEY, email VARCHAR(255) UNIQUE NOT NULL,
+      password VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL,
+      role VARCHAR(50) DEFAULT 'editor' NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW() NOT NULL
+    )`);
+    await db.execute(sql`CREATE TABLE IF NOT EXISTS site_settings (
+      id SERIAL PRIMARY KEY, key VARCHAR(255) UNIQUE NOT NULL, value TEXT,
+      updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+    )`);
+    await db.execute(sql`CREATE TABLE IF NOT EXISTS author_profile (
+      id SERIAL PRIMARY KEY, name VARCHAR(255) NOT NULL, photo TEXT, bio TEXT,
+      achievements TEXT, facebook_url TEXT, instagram_url TEXT, x_url TEXT,
+      linkedin_url TEXT, youtube_url TEXT, website_url TEXT,
+      updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+    )`);
+    await db.execute(sql`CREATE TABLE IF NOT EXISTS categories (
+      id SERIAL PRIMARY KEY, name VARCHAR(255) NOT NULL, slug VARCHAR(255) UNIQUE NOT NULL,
+      description TEXT, image TEXT, sort_order INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT NOW() NOT NULL
+    )`);
+    await db.execute(sql`CREATE TABLE IF NOT EXISTS books (
+      id SERIAL PRIMARY KEY, title VARCHAR(500) NOT NULL, slug VARCHAR(500) UNIQUE NOT NULL,
+      description TEXT, author_note TEXT, category_id INTEGER REFERENCES categories(id),
+      cover_image TEXT, gallery_images JSONB DEFAULT '[]', featured BOOLEAN DEFAULT false,
+      book_type VARCHAR(50) DEFAULT 'series', status VARCHAR(20) DEFAULT 'draft' NOT NULL,
+      meta_title TEXT, meta_description TEXT, views INTEGER DEFAULT 0,
+      published_at TIMESTAMP, created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+      updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+    )`);
+    await db.execute(sql`CREATE TABLE IF NOT EXISTS chapters (
+      id SERIAL PRIMARY KEY, book_id INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+      title VARCHAR(500) NOT NULL, slug VARCHAR(500) NOT NULL, content TEXT,
+      chapter_image TEXT, chapter_order INTEGER DEFAULT 1 NOT NULL,
+      status VARCHAR(20) DEFAULT 'draft' NOT NULL, views INTEGER DEFAULT 0,
+      published_at TIMESTAMP, created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+      updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+    )`);
+    await db.execute(sql`CREATE TABLE IF NOT EXISTS media (
+      id SERIAL PRIMARY KEY, filename VARCHAR(500) NOT NULL, path TEXT NOT NULL,
+      mime_type VARCHAR(100), size INTEGER, alt TEXT,
+      created_at TIMESTAMP DEFAULT NOW() NOT NULL
+    )`);
+    await db.execute(sql`CREATE TABLE IF NOT EXISTS blog_posts (
+      id SERIAL PRIMARY KEY, title VARCHAR(500) NOT NULL, slug VARCHAR(500) UNIQUE NOT NULL,
+      excerpt TEXT, content TEXT, featured_image TEXT, tags TEXT,
+      status VARCHAR(20) DEFAULT 'draft' NOT NULL, meta_title TEXT, meta_description TEXT,
+      views INTEGER DEFAULT 0, published_at TIMESTAMP,
+      created_at TIMESTAMP DEFAULT NOW() NOT NULL, updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+    )`);
+    await db.execute(sql`CREATE TABLE IF NOT EXISTS page_views (
+      id SERIAL PRIMARY KEY, page_type VARCHAR(50) NOT NULL, page_id INTEGER,
+      page_slug VARCHAR(500), viewed_at TIMESTAMP DEFAULT NOW() NOT NULL
+    )`);
+    await db.execute(sql`CREATE TABLE IF NOT EXISTS page_toggles (
+      id SERIAL PRIMARY KEY, page_key VARCHAR(100) UNIQUE NOT NULL,
+      enabled BOOLEAN DEFAULT true NOT NULL, label VARCHAR(255),
+      updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+    )`);
     // Check if already seeded
     const existing = await db.select().from(adminUsers).limit(1);
     if (existing.length > 0) {
       return NextResponse.json({ message: 'Already seeded. Delete data first to re-seed.' });
     }
-
     // Admin user
     const hash = await hashPassword('admin123');
-    await db.insert(adminUsers).values({ email: 'admin@reyecstasia.com', password: hash, name: 'Rey Ecstasia' });
-
+    await db.insert(adminUsers).values({ email: 'admin@reyecstasia.com', password: hash, name: 'Rey Ecstasia', role: 'super_admin' });
     // Site settings
     const settingsData: Record<string, string> = {
       site_name: 'Your Rey Of Ecstasy',
@@ -183,7 +100,6 @@ export async function GET() {
     for (const [key, value] of Object.entries(settingsData)) {
       await db.insert(siteSettings).values({ key, value });
     }
-
     // Author profile — Rey Ecstasia
     await db.insert(authorProfile).values({
       name: 'Rey Ecstasia',
@@ -194,7 +110,6 @@ export async function GET() {
       xUrl: 'https://x.com/reyecstasia',
       websiteUrl: 'https://reyecstasia.wordpress.com',
     });
-
     // Categories — matching WordPress exactly
     const catData = [
       { name: 'Erotica', slug: 'erotica', description: 'Bold, provocative, and unapologetic adult fiction. These stories explore desire, intimacy, and the raw chemistry between characters.', sortOrder: 1 },
@@ -209,11 +124,9 @@ export async function GET() {
       const [row] = await db.insert(categories).values(c).returning({ id: categories.id });
       insertedCats[c.slug] = row.id;
     }
-
     // ═══════════════════════════════════════════════════
     // BOOKS — Stories from the WordPress site
     // ═══════════════════════════════════════════════════
-
     // Book 1: Burning Desires (Series — 3 parts/chapters)
     const [burningDesires] = await db.insert(books).values({
       title: 'Burning Desires',
@@ -226,7 +139,6 @@ export async function GET() {
       status: 'published',
       publishedAt: new Date('2025-12-18'),
     }).returning({ id: books.id });
-
     // Burning Desires chapters
     await db.insert(chapters).values([
       {
@@ -242,7 +154,6 @@ export async function GET() {
         content: `<p>I sat down, trying to drown myself in the paperwork that lay before me, but the uncertainty in my body remained, and a taut string was ready to snap. The thrill of last night mingled with the bitter taste of reality, left me restless. I had given him everything, yet here I was… just another face in the crowd.</p><p>As the afternoon sun shone through the office windows, I made a resolution to confront my emotions. I picked up my phone, and my fingers hovered over his number. It felt like a dangerous temptation, one I knew I had to resist. Reaching out would only deepen my wounds, reminding me of the abyss that lay between us.</p><p>But the urge gnawed at me, a reminder of the intimacy we had shared. My mind drifted to the time I caught sight of him through the glass walls of his office, a figure of power and control, oblivious to the turmoil fuming within me.</p><p>Suddenly, a knock on the door broke my reverie. It was Caroline, my closest colleague and confidante.</p><p><em>"Are you okay?"</em> she asked, stepping inside.</p><p>I forced a smile. <em>"Just busy."</em></p><p>But she wasn't deceived.</p><p><em>"It's him,"</em> I admitted. <em>"Last night… it changed everything."</em></p><p><em>"Is he still treating you like the other woman?"</em></p><p>I nodded, the pain flaring up anew. <em>"He wants me to wait while he plays house with his wife."</em></p><p><em>"And are you willing to do that?"</em> she probed.</p><p><em>"I don't know,"</em> I confessed, tears prickling my eyes. <em>"But I can't just turn off my feelings like a light switch."</em></p><p>She stepped closer. <em>"You deserve more than being a secret. You deserve to be somebody's first choice, not a backup plan."</em></p><p>Her words resonated deep within me. Perhaps it was time to confront my worth. I had let him entangle his way into my heart, but I didn't have to remain in the dark. I could fight for my place. For my happiness.</p><hr><p><strong><em>Phone ringing…</em></strong></p><p><em>"Hello, who's this?"</em></p><p><strong>Shit! His wife picked up…</strong></p><p><em>"I'm calling from the firm. There's been an emergency and I was hoping to speak to him directly."</em> I said.</p><p><em>"Don't you have his business line or something? How did you get this number?"</em></p><p>I heard him talking in the background.</p><p><em>"It's okay honey, I got this now, thank you."</em></p><p><em>"Why are you calling my house?"</em> He said with an irritated tone. <em>"Do you want to get fired?"</em></p><p><em>"I'm sorry, I didn't mean to…"</em></p><p>He hung up before I could speak any further. I had never been so humiliated before.</p><p><strong>Why couldn't I accept that he would never love me like I wanted?</strong></p><p>Maybe it was time to open my heart up to somebody else.</p>`,
       },
     ]);
-
     // Book 2: Erotic Nights Of A Shady Slut (Single)
     const [eroticNights] = await db.insert(books).values({
       title: 'Erotic Nights Of A Shady Slut',
@@ -254,12 +165,10 @@ export async function GET() {
       status: 'published',
       publishedAt: new Date('2025-12-21'),
     }).returning({ id: books.id });
-
     await db.insert(chapters).values({
       bookId: eroticNights.id, title: 'Erotic Nights Of A Shady Slut', slug: 'full-story', chapterOrder: 1, status: 'published', publishedAt: new Date('2025-12-21'),
       content: `<p>This man was sickeningly beautiful. He wore the type of confidence that made him look like a golden god. He was something else. Something I'd never seen before, and quite frankly, I was pretty much occupied with the thought of him atop of me, so much that I didn't notice when he came up to me…</p><p>I met him at a private beach party sometime in late August. Ugh! I wish I could go on to say that he was tall, dark and handsome, but I realise that would be too cliché.</p><p>…</p><p><em>"I didn't know pretty sophisticated women came to places like this."</em></p><p>There he was, face-to-face with me. He was dashing and I didn't realise when he came up to me.</p><p><em>"And what's that supposed to mean? Are you assuming that pretty sophisticated women don't have the type of fun people like you do?"</em> I snapped back viciously.</p><p><em>"Oooh feisty! I mean no offense."</em></p><p><em>"Of course you didn't."</em></p><p>I could sense the look of admiration in his eyes. It was intense, deep, and questioning. Almost as if he was caught off guard by my rigidity.</p><p><em>"I'm Gerald by the way. It's nice to meet you."</em></p><p><em>"I'm Fatimah. Can't exactly say the same about you."</em></p><p>I wish I knew why I was acting all bitchy, especially when I knew how happy I was to be standing so close to him. I couldn't give the excitement away, so a little pretence was all I needed.</p><p>…</p><p>It had been three days since my encounter with the stranger I met on the beach, and honestly, if you had asked me how everything happened so fast, I wouldn't have the answer for you. Because I don't know the answer myself. Things escalated so quickly, I didn't even realise when we appeared at his hotel room that same night. The same night he flipped my world over.</p><p>No contacts were exchanged. No names. No addresses. But I longed to see him again. To feel him once more.</p><p>Seconds turned into minutes, minutes into hours, hours into days, and days into weeks. Yet, this mysterious man was nowhere to be found. He lingered in my thoughts, and his shadows lurked in my room at night… My body was obsessing over what it could not understand.</p><p><strong><em>Who really could he be? And why was I so hung up on him?</em></strong></p><p>…</p><p>Two months later, I visited the hospital to consult a doctor. It was a matter of urgency.</p><p>I was asked to wait in the office. While I sat waiting, my desires got the best of me.</p><p>I felt a hand go down into my blouse, reaching for my breasts. I flinched and I tried to scream, but he put his hand over my mouth, signalling me to be quiet. As soon as I saw his face, my heart raced.</p><p>It was him. The very man I had been longing for.</p><p>He quietly locked the door and pulled a chair beside me.</p><p><em>"Are you stalking me"</em> He said, wearing a smirk.</p><p>I tried to slap him, but he caught my hand.</p><p><em>"No need to get all worked up. We're in the hospital, remember?"</em></p><p>Helpless, I yielded.</p><p><em>"Where have you been? I've been waiting on you."</em> I cried.</p><p><em>"I know. I'm sorry I left you."</em></p><p>…</p><p>Suddenly, a knock is heard at the door.</p><p><em>"Sorry, Doc. I wanted to ask if you have a lady in there with you. Her husband's waiting for her, it's past her appointment time."</em></p><p>My heart sank. I knew my secret was now in the open.</p><p><em>"Listen, I can explain—"</em></p><p><em>"Get out!"</em></p><p><em>"But— but if you could just—"</em></p><p><em>"I said leave. Don't make me repeat myself."</em></p><p>Defeated, I put my clothes on and left. My world felt empty, and I was crumbled… once again.</p><p>…</p><p>One day, I lurked in the parking lot, waiting for him to leave. He got into his car and drove off, while I followed him.</p><p>He snuck up behind me, pressing me down on the windshield like a cop reprimanding a criminal.</p><p><em>"I told you to stay away from me, but you wouldn't listen. I'll teach you not to mess with me."</em></p><p><em>"You thought you were the only one with secrets, huh?"</em></p><p>In that moment, I surrendered. We were both culpable.</p><p>…</p><p>We were like two peas in a pod — bound by a fatal attraction, with no compass pointing toward north. We had nothing to lose, nothing to gain…</p>`,
     });
-
     // Book 3: The Man Who Stole Hearts In Ibadan (Single)
     const [ibadanMan] = await db.insert(books).values({
       title: 'The Man Who Stole Hearts In Ibadan Ended Up Breaking One',
@@ -271,12 +180,10 @@ export async function GET() {
       status: 'published',
       publishedAt: new Date('2025-12-29'),
     }).returning({ id: books.id });
-
     await db.insert(chapters).values({
       bookId: ibadanMan.id, title: 'The Man Who Stole Hearts In Ibadan', slug: 'full-story', chapterOrder: 1, status: 'published', publishedAt: new Date('2025-12-29'),
       content: `<p>I remember how tired I was when I traveled by train that afternoon despite the heavy rain that came upon the unfortunate city of Ibadan.</p><p><em>"Be weary of those Ibadan men oo, don't let them deceive you, they don't know how to love or keep good things."</em></p><p>That was what she told me.</p><p><strong>Ah! I wish I had listened to Aunty Sade.</strong></p><p>I should've listened to the voice of an elderly woman who had seen shege in the hands of not just Ibadan men, but Ota, Mushin, and Akoka men.</p><p>Olatunji was no different. All he knew how to do was open my legs every night, after opening other women's legs by day.</p><p>The signs were always there. Na me no just get sense.</p><p>***</p><p><em>"Hello Miss. What do you make of your trip to my beautiful hometown?"</em> He said to me at the station upon arrival.</p><p>I ignored him at first, because I was upset about the rain, but I decided to reply to him.</p><p><em>"Your hometown? My first impression of it so far is very poor. My only hope is that something good comes out of it at the end of the day."</em></p><p><em>"And I will make sure of that. You've got the right one."</em> He said proudly.</p><p>Three days into my Ibadan stay, I decided to lower my guard and let Olatunji in. He took me to a very nice restaurant where we were eventually joined by three of his colleagues…</p><p><em>"So you're the Fola babe Tuntun has been talking about? You're even more beautiful than he described."</em> One of them, Seyi, said.</p><p>Alas, it was time to return to my hotel room, and he accompanied me.</p><p><em>"Would you like to come inside?"</em></p><p>I hadn't realised when the words came out of my mouth.</p><p><em>"I don't mind spending the night with you…"</em></p><p>He said as he quickly grabbed me by the waist and began kissing me with an urgent desire I hadn't detected on him, but couldn't deny I felt inside of me as well.</p><p>***</p><p>That was what he always said to me. I was such a fool to believe a professional playboy over my instincts.</p><p>My instincts screamed: <strong><em>Stay away from this 'too-good-to-be-true Ibadan man'</em></strong>… While my heart screamed: <strong><em>You may be wrong about him. Aunty Sade's experience is not yours, have fun.</em></strong></p><p>And what did I do? I listened to my stupid heart like a goat that doesn't leave when you chase it.</p><p>Who could've thought that Olatunji's so-called 'sister' was his side chick? Or that his 'mother' was his sugarmommy? Or worse, that his 'cousin' was the next-door-neighbor he fucked every Saturday?</p><p>Yes! Olatunji wasn't only a master manipulator, he was exceptionally skillful in his dealings with these women, such that he had a schedule for all of us. I was his 'Thursday-to-Friday' schedule.</p><p>***</p><p><em>"Listen to me,"</em> A woman's voice took over the call. <em>"Ola is my husband, we have 3 children, and I'm currently eight months pregnant. You better stop calling his phone and search elsewhere for who you're looking for."</em></p><p>She said and hung up on me. I had never felt so humiliated before.</p><p>I remember falling to the ground in Bodija market, Ibadan, rolling and crying like a woman in despair, because I really was.</p><p><em>"Dide ki o dekun didamu ara re!"</em> (Meaning: Get up and stop embarrassing yourself!)</p><p>An elderly woman shouted at me.</p><p>***</p><p>You see, Olatunji didn't just break my heart, collect money from me under false pretenses, play me so bad, or embarrass me. No. He broke a piece of me that I could never recover. A part of me that wished I had listened to the voice of wisdom — <strong>Aunty Sade.</strong></p><p>Finally, it is with a heavy heart, the unwavering support of my ancestors, and the curse that lies beneath Nigeria that I say:</p><p><strong><em>"Olatunji, if you can read this, I want you to know that it will never be well with you. All the men in Ibadan will break your children's hearts like you broke mine."</em></strong></p>`,
     });
-
     // Book 4: Whoredom Wasn't My First Sin (Single — multi-part story)
     const [whoredom] = await db.insert(books).values({
       title: "Whoredom Wasn't My First Sin",
@@ -288,12 +195,10 @@ export async function GET() {
       status: 'published',
       publishedAt: new Date('2025-11-27'),
     }).returning({ id: books.id });
-
     await db.insert(chapters).values({
       bookId: whoredom.id, title: "Whoredom Wasn't My First Sin", slug: 'full-story', chapterOrder: 1, status: 'published', publishedAt: new Date('2025-11-27'),
       content: `<p>Hi. My name is…</p><p>Well, does it really matter? Identity feels like a luxury I no longer recognize, so let's skip that part.</p><p>I want to talk about something I've never talked about before. It's something that's happened to me over the years, but I'm finally getting to share it with you.</p><p>I'm asking for one thing — kindness. Not sympathy, not pity. Just a little kindness in how you judge what you're about to read. Because getting here hasn't been easy.</p><h2>Part 1: Interactions With The Devil</h2><p>My father used to have this friend. Middle-aged, married, his stomach was like a drum, and his smiles looked deceptive. At first, his visits were normal, until they weren't. Until he started coming for me…</p><p>He'd call me outside at night, to his perfect hiding place, and the perfect crime scene. And then he'd test the boundaries of a child who didn't know what safety looked like. I knew it was wrong. My body knew, my mind knew. But I was a kid, and silence was the only language adults had taught me.</p><h2>Part 2: The Accidental Making of a Whore</h2><p>Abuse rewired my brain like faulty electricity, and I learned desire the wrong way… from predators, not partners. From boys who saw me alone in a dark corner and read that as permission.</p><p>No one noticed. No one asked. No one cared.</p><h2>Part 3: A Forbidden Affair</h2><p>By seventeen, I was living inside a shell of my own making. Pain felt familiar, so maybe that's why I kept ending up with men who could smell my vulnerability like perfume from a mile away.</p><p>Then there was Mr. Bayo who was an architect by profession, and an architect of my ruin by practice. He was older, powerful, experienced, and bored. He didn't seduce me… instead, he recruited me.</p><h2>Part 4: Hardcore, Softcore</h2><p>Then I met Tobi. He was pure, kind, and normal. A man who loved gently, he was a completely foreign breed of the male species I had ever met.</p><p>I wanted normalcy so badly it hurt.</p><p>But life laughed at me.</p><p>The day his family invited me over, I walked straight into hell. His father — the man who stole my childhood — sat smiling at me across the dinner table like we shared nothing in common.</p><p>You know, sometimes trauma doesn't knock at your door, it strolls in wearing agbada and shining its teeth like Baba Suwe.</p><h2>Part 5: Echoes of Shame</h2><p>I self-destructed the relationship with Tobi by sleeping with his best friend. I didn't cheat because I was wicked, rather, I cheated because chaos was the only rhythm I'd ever learned to dance to.</p><h2>Part 6: The Art of Submission</h2><p>Men were easy. Easily predictable, driven by desire and ego. I knew just how to weaponize both.</p><p>Submission was my artistry. Seduction was my strategy. Survival was my KPI.</p><h2>Part 7: Inflammable Passions</h2><p>One night, Ada dragged me to a party in Banana Island. Rich men, expensive cars, shallow conversations, all of that stuff… It was a marketplace of desire, and I was the most valuable item on display.</p>`,
     });
-
     // Book 5: My Secret Obsession — A Miniseries
     const [secretObsession] = await db.insert(books).values({
       title: 'My Secret Obsession: A Miniseries',
@@ -305,16 +210,13 @@ export async function GET() {
       status: 'published',
       publishedAt: new Date('2025-11-28'),
     }).returning({ id: books.id });
-
     await db.insert(chapters).values({
       bookId: secretObsession.id, title: 'Ep.1: My First Kink Experience', slug: 'ep-1-my-first-kink-experience', chapterOrder: 1, status: 'published', publishedAt: new Date('2025-11-28'),
       content: `<p>I went to a house party on a lovely Saturday night. I suppose you could say that I was bored, and my roommate forced me to go out with her.</p><p>She was the bubbly type — talkative, social, and annoyingly polite. I admired her from afar because she lived on vibes and extroversion, while I lived on caution.</p><p><em>"You need to meet people,"</em> she'd always say. <em>"Touch grass."</em></p><p>Well, congratulations to her, I touched more than grass that night.</p><p>The house was big, loud, and creeping with strangers. My anxiety shot through the roof instantly.</p><p>After what felt like two hours of suffering, I realized I couldn't find her. I spotted her earlier walking into one of the rooms with her boyfriend, so I wandered off to track them down. That was my first mistake… or maybe my first awakening.</p><p>As I approached the hallway leading to the balcony, I heard sounds. Pleasure, rhythm, breathlessness. I recognized the voice.</p><p><strong><em>My friend.</em></strong></p><p>And the door? It was wide open like a movie invitation.</p><p>Curiosity was already beating my morals, so I peeked in while pretending to check if anyone else was watching me be a pervert.</p><p><em>What was this new, sinful, ungodly electricity moving slowly through my body?</em></p><p>It was unusual, it felt forbidden, but I loved it.</p><p>…</p><p>Later, exhausted, I crashed on the bed. Sometime in the middle of the night, a warm touch pulled me out of sleep. It was soft, intentional… intimate.</p><p><em>"What are you doing?"</em> I whispered, confused.</p><p>She said nothing, just stared at me with this unreadable expression.</p><p>Then…</p><p><em>"I know it was you, babe. You were there."</em></p><p>My heart did a backflip.</p><p><em>"I see the way you look at me,"</em> she continued. <em>"The way you watch me undress. I've seen it."</em></p><p><em>"Do you find me attractive?"</em> she asked. <em>"Because if you do… that's okay."</em></p><p>She closed the space between us and pressed her lips against mine — it was slow, intense, and passionate. I melted into her without thinking.</p><p><em>"If it makes you feel better, I'm into you too."</em></p><p>I blinked. Trap? Or truth?</p>`,
     });
-
     // ═══════════════════════════════════════════════════
     // BLOG POSTS — Essays & Reflections from WordPress
     // ═══════════════════════════════════════════════════
-
     await db.insert(blogPosts).values([
       {
         title: 'My First Blog Post',
@@ -389,7 +291,6 @@ export async function GET() {
         publishedAt: new Date('2024-10-25'),
       },
     ]);
-
     // Page toggles
     const pages = [
       { pageKey: 'home', label: 'Home Page', enabled: true },
@@ -403,7 +304,6 @@ export async function GET() {
     for (const p of pages) {
       await db.insert(pageToggles).values(p);
     }
-
     return NextResponse.json({
       message: 'Seeded successfully!',
       admin: { email: 'admin@reyecstasia.com', password: 'admin123' },

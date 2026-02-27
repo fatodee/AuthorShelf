@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { siteSettings } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-
+import { revalidatePath } from 'next/cache';
+export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const rows = await db.select().from(siteSettings);
@@ -13,7 +14,6 @@ export async function GET() {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
-
 export async function POST(request: Request) {
   try {
     const data = await request.json();
@@ -25,6 +25,8 @@ export async function POST(request: Request) {
         await db.insert(siteSettings).values({ key, value: value as string, updatedAt: new Date() });
       }
     }
+    // CRITICAL: Revalidate ALL pages so layout picks up new settings
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });

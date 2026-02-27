@@ -2,94 +2,94 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import BookCard from '@/components/public/BookCard';
-
 export default function HomePage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     fetch('/api/public?type=home').then(r => r.json()).then(d => { setData(d); setLoading(false); }).catch(() => setLoading(false));
   }, []);
-
   if (loading) return <div className="page-loader"><i className="fa-solid fa-spinner fa-spin text-3xl" style={{ color: 'var(--color-primary)' }}></i></div>;
-
   const { settings, featuredBooks, latestBooks, latestChapters, categories, author, toggles } = data || {};
-  const latestSection = settings?.homepage_latest || 'books';
-
   return (
     <div className="fade-in">
       {/* Hero */}
-      <div className="hero-section">
-        <div className="page-container">
-          <h1 className="hero-title">{settings?.site_name || 'AuthorShelf'}</h1>
-          <p className="text-lg mt-3" style={{ color: 'var(--text-muted)' }}>{settings?.tagline || 'Read free books online'}</p>
-          {toggles?.books !== false && (
-            <Link href="/books" className="inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-full text-white font-semibold" style={{ background: 'var(--color-primary)' }}>
-              <i className="fa-solid fa-book-open"></i> Browse Books
-            </Link>
-          )}
-        </div>
+      <div className="hero">
+        <h1>{settings?.site_name || 'Your Rey Of Ecstasy'}</h1>
+        <p>{settings?.tagline || settings?.site_tagline || 'Exploring thoughts across genres'}</p>
+        {toggles?.books !== false && (
+          <Link href="/books" className="hero-cta">
+            Browse Books <i className="fa-solid fa-arrow-right" style={{ fontSize: '0.8em' }}></i>
+          </Link>
+        )}
       </div>
-
       <div className="page-container">
         {/* Featured Books */}
         {featuredBooks?.length > 0 && (
           <section className="mb-12">
-            <h2 className="section-heading"><i className="fa-solid fa-star"></i>Featured Books</h2>
-            <div className="books-grid">
+            <div className="section-header">
+              <h2 className="section-title"><i className="fa-solid fa-star"></i>Featured</h2>
+              {toggles?.books !== false && <Link href="/books" className="section-link">View all <i className="fa-solid fa-arrow-right"></i></Link>}
+            </div>
+            <div className="book-grid">
               {featuredBooks.map((b: any) => <BookCard key={b.id} book={b} />)}
             </div>
           </section>
         )}
-
-        {/* Latest Books or Chapters */}
-        {latestSection === 'chapters' && latestChapters?.length > 0 ? (
+        {/* Latest Books */}
+        {latestBooks?.length > 0 && (
           <section className="mb-12">
-            <h2 className="section-heading"><i className="fa-solid fa-clock"></i>Latest Chapters</h2>
+            <div className="section-header">
+              <h2 className="section-title"><i className="fa-solid fa-clock"></i>Latest</h2>
+            </div>
+            <div className="book-grid">
+              {latestBooks.map((b: any) => <BookCard key={b.id} book={b} />)}
+            </div>
+          </section>
+        )}
+        {/* Latest Chapters */}
+        {latestChapters?.length > 0 && (
+          <section className="mb-12">
+            <div className="section-header">
+              <h2 className="section-title"><i className="fa-solid fa-file-lines"></i>Recent Chapters</h2>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {latestChapters.map((c: any) => (
-                <Link key={c.id} href={`/book/${c.bookSlug}/${c.slug}`} className="book-card p-4 flex gap-3">
+                <Link key={c.id} href={`/book/${c.bookSlug}/${c.slug}`} className="blog-card flex gap-4">
                   {c.chapterImage && <img src={c.chapterImage} alt="" className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />}
                   <div>
                     <p className="font-bold text-sm" style={{ fontFamily: 'var(--font-heading)' }}>{c.title}</p>
                     <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{c.bookTitle}</p>
-                    <p className="text-xs mt-1" style={{ color: 'var(--color-primary)' }}><i className="fa-solid fa-book-open mr-1"></i>Read</p>
+                    <p className="text-xs mt-1 font-semibold" style={{ color: 'var(--color-primary)' }}>Read <i className="fa-solid fa-arrow-right" style={{ fontSize: '0.625rem' }}></i></p>
                   </div>
                 </Link>
               ))}
             </div>
           </section>
-        ) : latestBooks?.length > 0 && (
-          <section className="mb-12">
-            <h2 className="section-heading"><i className="fa-solid fa-clock"></i>Latest Books</h2>
-            <div className="books-grid">
-              {latestBooks.map((b: any) => <BookCard key={b.id} book={b} />)}
-            </div>
-          </section>
         )}
-
         {/* Categories */}
         {toggles?.categories !== false && categories?.length > 0 && (
           <section className="mb-12">
-            <h2 className="section-heading"><i className="fa-solid fa-folder"></i>Categories</h2>
+            <div className="section-header">
+              <h2 className="section-title"><i className="fa-solid fa-folder"></i>Categories</h2>
+              <Link href="/categories" className="section-link">View all <i className="fa-solid fa-arrow-right"></i></Link>
+            </div>
             <div className="flex flex-wrap gap-3">
               {categories.map((c: any) => (
-                <Link key={c.id} href={`/category/${c.slug}`} className="category-pill text-sm px-4 py-2">{c.name}</Link>
+                <Link key={c.id} href={`/category/${c.slug}`} className="pill-outline">{c.name}</Link>
               ))}
             </div>
           </section>
         )}
-
-        {/* Author Bio Preview */}
+        {/* Author */}
         {toggles?.author !== false && author && (
           <section className="mb-12">
-            <div className="flex flex-col sm:flex-row items-center gap-6 p-6 rounded-xl" style={{ background: 'var(--bg-alt)', border: '1px solid var(--border)' }}>
-              {author.photo && <img src={author.photo} alt={author.name} className="w-24 h-24 rounded-full object-cover flex-shrink-0" style={{ border: '3px solid var(--color-primary)' }} />}
+            <div className="blog-card flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
+              {author.photo && <img src={author.photo} alt={author.name} className="author-photo flex-shrink-0" />}
               <div>
                 <h3 className="font-bold text-lg" style={{ fontFamily: 'var(--font-heading)' }}>{author.name}</h3>
-                <div className="text-sm mt-1 line-clamp-3" style={{ color: 'var(--text-muted)' }} dangerouslySetInnerHTML={{ __html: (author.bio || '').substring(0, 300) + '...' }} />
-                <Link href="/author" className="inline-block mt-2 text-sm font-medium" style={{ color: 'var(--color-primary)' }}>
-                  <i className="fa-solid fa-arrow-right mr-1"></i>Read More
+                <div className="text-sm mt-2 line-clamp-3" style={{ color: 'var(--text-muted)' }} dangerouslySetInnerHTML={{ __html: (author.bio || '').substring(0, 300) + '...' }} />
+                <Link href="/author" className="inline-flex items-center gap-1 mt-3 text-sm font-semibold" style={{ color: 'var(--color-primary)' }}>
+                  Read More <i className="fa-solid fa-arrow-right" style={{ fontSize: '0.625rem' }}></i>
                 </Link>
               </div>
             </div>

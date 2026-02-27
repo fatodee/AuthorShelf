@@ -1,7 +1,6 @@
 'use client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: 'fa-solid fa-chart-pie' },
   { href: '/admin/books', label: 'Books', icon: 'fa-solid fa-book' },
@@ -15,17 +14,15 @@ const navItems = [
   { href: '/admin/pages', label: 'Page Visibility', icon: 'fa-solid fa-eye' },
   { href: '/admin/support', label: 'Support / Donate', icon: 'fa-solid fa-heart' },
   { href: '/admin/analytics', label: 'Analytics', icon: 'fa-solid fa-chart-line' },
+  { href: '/admin/users', label: 'Admin Users', icon: 'fa-solid fa-users-gear' },
 ];
-
 export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/login');
   };
-
   return (
     <div className="admin-sidebar flex flex-col">
       <div className="p-5 border-b border-white/10">
