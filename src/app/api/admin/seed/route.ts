@@ -73,28 +73,25 @@ export async function GET() {
     }
     // Admin user
     const hash = await hashPassword('admin123');
-    await db.insert(adminUsers).values({ email: 'admin@reyecstasia.com', password: hash, name: 'Rey Ecstasia', role: 'super_admin' });
+    await db.insert(adminUsers).values({ email: 'admin@authorshelf.com', password: hash, name: 'Site Admin', role: 'super_admin' });
     // Site settings
     const settingsData: Record<string, string> = {
-      site_name: 'Your Rey Of Ecstasy',
-      tagline: 'Exploring thoughts across genres',
-      seo_title: 'Your Rey Of Ecstasy — Exploring thoughts across genres',
-      seo_description: 'A creative writing platform by Rey Ecstasia. Stories, erotica, romance, reflections, and raw conversations about love, growth, and culture.',
-      footer_text: 'Words that seduce, stories that stay. © Rey Ecstasia.',
+      site_name: 'AuthorShelf',
+      tagline: 'Stories worth reading',
+      seo_title: 'AuthorShelf — Stories worth reading',
+      seo_description: 'A personal online book reading platform. Browse and read stories for free.',
+      footer_text: '© AuthorShelf. All rights reserved.',
       homepage_latest: 'books',
       homepage_featured: 'true',
-      primary_color: '#8b1a1a',
-      secondary_color: '#d4a574',
-      font_choice: 'literary',
-      default_theme: 'dark',
+      theme_name: 'midnight-ink',
       support_enabled: 'true',
-      support_title: 'Support Rey\'s Writing',
+      support_title: 'Support the Author',
       support_description: 'If my stories moved you, made you feel something, or kept you up past your bedtime — consider supporting my craft. Every contribution fuels the next chapter.',
       support_button_text: 'Buy Me a Coffee',
       support_methods: JSON.stringify([
-        { label: 'Buy Me a Coffee', url: 'https://buymeacoffee.com/reyecstasia', icon: 'fa-solid fa-mug-hot' },
-        { label: 'PayPal', url: 'https://paypal.me/reyecstasia', icon: 'fa-brands fa-paypal' },
-        { label: 'Cash App', url: 'https://cash.app/$reyecstasia', icon: 'fa-solid fa-dollar-sign' }
+        { label: 'Buy Me a Coffee', url: 'https://buymeacoffee.com/', icon: 'fa-solid fa-mug-hot' },
+        { label: 'PayPal', url: 'https://paypal.me/', icon: 'fa-brands fa-paypal' },
+        { label: 'Cash App', url: 'https://cash.app/', icon: 'fa-solid fa-dollar-sign' }
       ]),
     };
     for (const [key, value] of Object.entries(settingsData)) {
@@ -306,13 +303,13 @@ export async function GET() {
     }
     return NextResponse.json({
       message: 'Seeded successfully!',
-      admin: { email: 'admin@reyecstasia.com', password: 'admin123' },
+      admin: { email: 'admin@authorshelf.com', password: 'admin123' },
       data: {
         categories: catData.length,
         books: 5,
         blogPosts: 8,
-        author: 'Rey Ecstasia',
-        siteName: 'Your Rey Of Ecstasy',
+        author: 'Site Author',
+        siteName: 'AuthorShelf',
       },
     });
   } catch (e: any) {
