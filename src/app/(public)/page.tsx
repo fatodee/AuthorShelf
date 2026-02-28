@@ -14,8 +14,8 @@ export default function HomePage() {
     <div className="fade-in">
       {/* Hero */}
       <div className="hero">
-        <h1>{settings?.site_name || 'Your Rey Of Ecstasy'}</h1>
-        <p>{settings?.tagline || settings?.site_tagline || 'Exploring thoughts across genres'}</p>
+        <h1>{settings?.site_name || 'AuthorShelf'}</h1>
+        <p>{settings?.tagline || settings?.site_tagline || 'Stories worth reading'}</p>
         {toggles?.books !== false && (
           <Link href="/books" className="hero-cta">
             Browse Books <i className="fa-solid fa-arrow-right" style={{ fontSize: '0.8em' }}></i>

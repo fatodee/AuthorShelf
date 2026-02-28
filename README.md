@@ -1,6 +1,6 @@
 # AuthorShelf
 
-A personal online book reading platform by. Readers browse and read stories for free. Everything managed from an admin dashboard fully customizable for any writer.
+A personal online book reading platform. Readers browse and read stories for free. Everything managed from a built-in admin dashboard — fully customizable for any writer.
 
 ## Tech Stack
 
@@ -18,14 +18,27 @@ NEXT_PUBLIC_URL=http://localhost:3000
 
 npm run db:push
 npm run dev
-
-# Seed data: visit http://localhost:3000/api/admin/seed
-# Login: admin@reyecstasia.com / admin123
 ```
 
-## Deploy to Vercel
+Visit `/api/admin/seed` to populate the database with sample data.
 
-1. Push to GitHub
-2. Import in Vercel → add Neon Postgres from Storage tab
-3. Add env: `JWT_SECRET` (run `openssl rand -base64 32`)
-4. Deploy → visit `your-domain/api/admin/seed` once
+Default login: `admin@authorshelf.com` / `admin123`
+
+## Features
+
+- **Books & Chapters** — Manage series or standalone stories with rich text editing
+- **Blog** — Write and publish blog posts with tags and featured images
+- **Categories** — Organize books into categories
+- **Author Profile** — Bio, photo, social links, achievements
+- **10 Theme Packs** — Curated themes with glassmorphism, claymorphism, neon, minimal, and more
+- **Admin Roles** — Super Admin, Admin, Editor with role-based permissions
+- **Page Visibility** — Toggle pages on/off from the dashboard
+- **Support/Donate** — Add payment links and custom embed widgets
+- **Analytics** — Track page views
+- **SEO** — Custom titles, descriptions, and meta tags
+- **Responsive** — Works on desktop and mobile
+- **Dark & Light** — Theme-dependent, curated color schemes
+
+## Deployment
+
+Push to GitHub, connect to Vercel, add `DATABASE_URL` and `JWT_SECRET` environment variables.
