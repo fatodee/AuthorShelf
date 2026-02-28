@@ -33,7 +33,7 @@ export default function AdminSettings() {
           <h2 className="font-bold text-lg" style={{ fontFamily: 'var(--font-heading)' }}>General</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div><label className="admin-label">Site Name</label><input className="admin-input" value={settings.site_name || ''} onChange={e => update('site_name', e.target.value)} /><p className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>Shown in header, browser tab, and SEO.</p></div>
-            <div><label className="admin-label">Tagline</label><input className="admin-input" value={settings.site_tagline || ''} onChange={e => update('site_tagline', e.target.value)} /><p className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>Short subtitle shown below the site name.</p></div>
+            <div><label className="admin-label">Tagline</label><input className="admin-input" value={settings.tagline || ''} onChange={e => update('tagline', e.target.value)} /><p className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>Short subtitle shown below the site name.</p></div>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div><label className="admin-label">Logo</label><input type="file" accept="image/*" onChange={e => handleUpload(e, 'logo')} className="admin-input" />{settings.logo && <img src={settings.logo} alt="Logo" className="mt-2 h-12" />}<p className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>If no logo, site name text is used.</p></div>
