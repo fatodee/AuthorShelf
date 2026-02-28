@@ -1,39 +1,48 @@
 'use client';
 import { useState, useEffect } from 'react';
 import RichEditor from '@/components/admin/RichEditor';
-
 export default function AdminBlog() {
   const [posts, setPosts] = useState<any[]>([]);
   const [editing, setEditing] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
+  const [toast, setToast] = useState('');
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
   const load = async () => { setLoading(true); const r = await fetch('/api/admin/blog'); setPosts(await r.json()); setLoading(false); };
   useEffect(() => { load(); }, []);
-
   const genSlug = (t: string) => t.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/-+/g, '-');
-
-  const save = async () => {
+  const save = async (asDraft = false) => {
     setSaving(true);
     const method = editing?.id ? 'PUT' : 'POST';
     const data = { ...editing };
+    if (asDraft) data.status = 'draft';
     if (!data.slug) data.slug = genSlug(data.title);
-    await fetch('/api/admin/blog', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-    setSaving(false); setShowForm(false); setEditing(null); load();
+    try {
+      const res = await fetch('/api/admin/blog', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const result = await res.json();
+      if (result.error) { showToast('Error: ' + result.error); setSaving(false); return; }
+      if (!editing?.id && result.id) setEditing({ ...data, id: result.id });
+      showToast('Post saved!');
+      const r = await fetch('/api/admin/blog'); setPosts(await r.json());
+    } catch (e: any) { showToast('Save failed'); }
+    setSaving(false);
   };
-
+  const toggleStatus = async (post: any) => {
+    const newStatus = post.status === 'published' ? 'draft' : 'published';
+    await fetch('/api/admin/blog', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: post.id, status: newStatus }) });
+    load();
+  };
   const remove = async (id: number) => {
     if (!confirm('Delete this post?')) return;
     await fetch('/api/admin/blog', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
     load();
   };
-
-  if (loading) return <div className="flex items-center justify-center py-20"><i className="fa-solid fa-spinner fa-spin text-2xl" style={{ color: 'var(--color-primary)' }}></i></div>;
-
+  if (loading) return <div className="page-loader"><i className="fa-solid fa-spinner fa-spin text-2xl" style={{ color: 'var(--color-primary)' }}></i></div>;
   if (showForm) {
     return (
       <div className="fade-in">
+        {toast && <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 9999, padding: '.75rem 1.25rem', borderRadius: 'var(--radius-sm)', background: toast.startsWith('Error') ? '#dc2626' : 'var(--color-primary)', color: '#fff', fontSize: '.875rem', fontWeight: 600, boxShadow: 'var(--shadow-lg)' }}>{toast}</div>}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold"><i className="fa-solid fa-pen-nib mr-3" style={{ color: 'var(--color-primary)' }}></i>{editing?.id ? 'Edit Post' : 'New Post'}</h1>
           <button onClick={() => { setShowForm(false); setEditing(null); }} className="btn btn-secondary"><i className="fa-solid fa-arrow-left mr-2"></i>Back</button>
@@ -48,12 +57,15 @@ export default function AdminBlog() {
           <div><label className="form-label">Featured Image URL</label><input className="form-input" value={editing?.featuredImage || ''} onChange={e => setEditing({ ...editing, featuredImage: e.target.value })} /></div>
           <div><label className="form-label">Excerpt</label><textarea className="form-input" rows={3} value={editing?.excerpt || ''} onChange={e => setEditing({ ...editing, excerpt: e.target.value })} /></div>
           <div><label className="form-label">Content</label><RichEditor value={editing?.content || ''} onChange={v => setEditing({ ...editing, content: v })} minHeight="400px" /></div>
-          <div className="flex gap-3"><button onClick={save} disabled={saving} className="btn btn-primary">{saving ? 'Saving...' : 'Save Post'}</button><button onClick={() => { setShowForm(false); setEditing(null); }} className="btn btn-secondary">Cancel</button></div>
+          <div className="flex gap-3">
+            <button onClick={() => save()} disabled={saving} className="btn btn-primary">{saving ? 'Saving...' : 'Save Post'}</button>
+            <button onClick={() => save(true)} disabled={saving} className="btn btn-secondary"><i className="fa-solid fa-file-pen mr-2"></i>Save as Draft</button>
+            <button onClick={() => { setShowForm(false); setEditing(null); }} className="btn btn-secondary">Cancel</button>
+          </div>
         </div>
       </div>
     );
   }
-
   return (
     <div className="fade-in">
       <div className="flex items-center justify-between mb-6">
@@ -70,7 +82,7 @@ export default function AdminBlog() {
               {posts.map(p => (
                 <tr key={p.id}>
                   <td className="font-medium">{p.title}</td>
-                  <td><span className={`badge ${p.status === 'published' ? 'badge-green' : 'badge-yellow'}`}>{p.status}</span></td>
+                  <td><button onClick={() => toggleStatus(p)} className={`badge ${p.status === 'published' ? 'badge-green' : 'badge-yellow'}`} style={{ cursor: 'pointer', border: 'none' }} title="Click to toggle">{p.status}</button></td>
                   <td className="text-sm" style={{ color: 'var(--text-muted)' }}>{p.tags}</td>
                   <td><div className="flex gap-2"><button onClick={() => { setEditing(p); setShowForm(true); }} className="btn btn-sm btn-secondary"><i className="fa-solid fa-pen"></i></button><button onClick={() => remove(p.id)} className="btn btn-sm btn-danger"><i className="fa-solid fa-trash"></i></button></div></td>
                 </tr>
