@@ -40,9 +40,11 @@ export async function PUT(request: Request) {
   try {
     const data = await request.json();
     if (!data.id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
-    const { id, categoryName, ...rest } = data;
+    const { id, categoryName, createdAt, ...rest } = data;
     rest.updatedAt = new Date();
+    if (rest.publishedAt) rest.publishedAt = new Date(rest.publishedAt);
     if (rest.status === 'published' && !rest.publishedAt) rest.publishedAt = new Date();
+    if (rest.status === 'draft') rest.publishedAt = null;
     await db.update(books).set(rest).where(eq(books.id, id));
     return NextResponse.json({ success: true });
   } catch (e: any) {
