@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { pageToggles } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-
+import { revalidatePath } from 'next/cache';
 export async function GET() {
   try {
     const rows = await db.select().from(pageToggles);
@@ -11,7 +11,6 @@ export async function GET() {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
-
 export async function POST(request: Request) {
   try {
     const data = await request.json();
@@ -22,6 +21,7 @@ export async function POST(request: Request) {
     } else {
       await db.insert(pageToggles).values({ pageKey, enabled, label: data.label || pageKey, updatedAt: new Date() });
     }
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });

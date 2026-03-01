@@ -3,17 +3,41 @@ import { db } from '@/lib/db';
 import { books, chapters, categories, blogPosts, authorProfile, pageToggles } from '@/lib/db/schema';
 import { eq, and, desc, asc, sql } from 'drizzle-orm';
 import { getAllSettings } from '@/lib/settings';
-
 export const dynamic = 'force-dynamic';
-
 export async function GET(req: NextRequest) {
   const type = req.nextUrl.searchParams.get('type');
   try {
+    // ── LAYOUT: lightweight endpoint for Header + Footer ──
+    if (type === 'layout') {
+      const settings = await getAllSettings();
+      const author = await db.select().from(authorProfile).limit(1);
+      const toggleRows = await db.select().from(pageToggles);
+      const toggles: Record<string, boolean> = {};
+      for (const t of toggleRows) toggles[t.pageKey] = t.enabled;
+      // Merge support_enabled setting into toggles
+      if (settings.support_enabled === 'false') toggles['support'] = false;
+      return NextResponse.json({ settings, author: author[0] || null, toggles });
+    }
+    // ── HOME: books + chapters (no heavy content) ──
     if (type === 'home') {
       const settings = await getAllSettings();
-      const featuredBooks = await db.select().from(books).where(and(eq(books.status, 'published'), eq(books.featured, true))).orderBy(desc(books.publishedAt)).limit(6);
-      const latestBooks = await db.select().from(books).where(eq(books.status, 'published')).orderBy(desc(books.publishedAt)).limit(8);
-      const latestChapters = await db.select().from(chapters).where(eq(chapters.status, 'published')).orderBy(desc(chapters.publishedAt)).limit(6);
+      const featuredBooks = await db.select().from(books)
+        .where(and(eq(books.status, 'published'), eq(books.featured, true)))
+        .orderBy(desc(books.publishedAt)).limit(6);
+      const latestBooks = await db.select().from(books)
+        .where(eq(books.status, 'published'))
+        .orderBy(desc(books.publishedAt)).limit(8);
+      // Only select the fields we need for chapter cards (NOT full content)
+      const latestChapters = await db.select({
+        id: chapters.id,
+        title: chapters.title,
+        slug: chapters.slug,
+        bookId: chapters.bookId,
+        chapterImage: chapters.chapterImage,
+        publishedAt: chapters.publishedAt,
+      }).from(chapters)
+        .where(eq(chapters.status, 'published'))
+        .orderBy(desc(chapters.publishedAt)).limit(6);
       const cats = await db.select().from(categories).orderBy(asc(categories.sortOrder));
       const author = await db.select().from(authorProfile).limit(1);
       const allBooks = await db.select().from(books).where(eq(books.status, 'published'));
@@ -21,17 +45,32 @@ export async function GET(req: NextRequest) {
       const allCats = await db.select().from(categories);
       const catMap: Record<number, string> = {};
       for (const c of allCats) catMap[c.id] = c.name;
-      const enrichBooks = (list: typeof featuredBooks) => list.map(b => ({ ...b, categoryName: b.categoryId ? catMap[b.categoryId] || null : null }));
+      const enrichBooks = (list: typeof featuredBooks) => list.map(b => ({
+        ...b, categoryName: b.categoryId ? catMap[b.categoryId] || null : null
+      }));
       // Enrich latest chapters with book info
       const bookMap: Record<number, { title: string; slug: string }> = {};
       for (const b of allBooks) bookMap[b.id] = { title: b.title, slug: b.slug };
-      const enrichedChapters = latestChapters.map(c => ({ ...c, bookTitle: bookMap[c.bookId]?.title, bookSlug: bookMap[c.bookId]?.slug }));
-      const toggles = await db.select().from(pageToggles);
+      const enrichedChapters = latestChapters.map(c => ({
+        ...c,
+        bookTitle: bookMap[c.bookId]?.title,
+        bookSlug: bookMap[c.bookId]?.slug,
+      }));
+      const toggleRows = await db.select().from(pageToggles);
       const tMap: Record<string, boolean> = {};
-      for (const t of toggles) tMap[t.pageKey] = t.enabled;
-      return NextResponse.json({ settings, featuredBooks: enrichBooks(featuredBooks), latestBooks: enrichBooks(latestBooks), latestChapters: enrichedChapters, categories: cats, author: author[0] || null, toggles: tMap });
+      for (const t of toggleRows) tMap[t.pageKey] = t.enabled;
+      // Merge support_enabled setting into toggles
+      if (settings.support_enabled === 'false') tMap['support'] = false;
+      return NextResponse.json({
+        settings,
+        featuredBooks: enrichBooks(featuredBooks),
+        latestBooks: enrichBooks(latestBooks),
+        latestChapters: enrichedChapters,
+        categories: cats,
+        author: author[0] || null,
+        toggles: tMap,
+      });
     }
-
     if (type === 'books') {
       const catId = req.nextUrl.searchParams.get('category');
       const allCats = await db.select().from(categories).orderBy(asc(categories.sortOrder));
@@ -42,7 +81,6 @@ export async function GET(req: NextRequest) {
         : await db.select().from(books).where(eq(books.status, 'published')).orderBy(desc(books.publishedAt));
       return NextResponse.json({ books: query.map(b => ({ ...b, categoryName: b.categoryId ? catMap[b.categoryId] : null })), categories: allCats });
     }
-
     if (type === 'book') {
       const slug = req.nextUrl.searchParams.get('slug');
       if (!slug) return NextResponse.json({ error: 'Missing slug' }, { status: 400 });
@@ -54,7 +92,6 @@ export async function GET(req: NextRequest) {
       const settings = await getAllSettings();
       return NextResponse.json({ book: { ...book, categoryName: cat[0]?.name || null, categorySlug: cat[0]?.slug || null }, chapters: chaps, settings });
     }
-
     if (type === 'chapter') {
       const bookSlug = req.nextUrl.searchParams.get('bookSlug');
       const chapterSlug = req.nextUrl.searchParams.get('chapterSlug');
@@ -71,16 +108,13 @@ export async function GET(req: NextRequest) {
       const settings = await getAllSettings();
       return NextResponse.json({ book, chapter: current, chapters: chaps, prev, next, settings });
     }
-
     if (type === 'categories') {
       const cats = await db.select().from(categories).orderBy(asc(categories.sortOrder));
-      // Count books per category
       const allBooks = await db.select().from(books).where(eq(books.status, 'published'));
       const counts: Record<number, number> = {};
       for (const b of allBooks) { if (b.categoryId) counts[b.categoryId] = (counts[b.categoryId] || 0) + 1; }
       return NextResponse.json({ categories: cats.map(c => ({ ...c, bookCount: counts[c.id] || 0 })) });
     }
-
     if (type === 'category') {
       const slug = req.nextUrl.searchParams.get('slug');
       if (!slug) return NextResponse.json({ error: 'Missing slug' }, { status: 400 });
@@ -89,17 +123,14 @@ export async function GET(req: NextRequest) {
       const bks = await db.select().from(books).where(and(eq(books.status, 'published'), eq(books.categoryId, cat[0].id))).orderBy(desc(books.publishedAt));
       return NextResponse.json({ category: cat[0], books: bks });
     }
-
     if (type === 'author') {
       const author = await db.select().from(authorProfile).limit(1);
       return NextResponse.json({ author: author[0] || null });
     }
-
     if (type === 'blog') {
       const posts = await db.select().from(blogPosts).where(eq(blogPosts.status, 'published')).orderBy(desc(blogPosts.publishedAt));
       return NextResponse.json({ posts });
     }
-
     if (type === 'blogPost') {
       const slug = req.nextUrl.searchParams.get('slug');
       if (!slug) return NextResponse.json({ error: 'Missing slug' }, { status: 400 });
@@ -107,14 +138,14 @@ export async function GET(req: NextRequest) {
       if (!post.length) return NextResponse.json({ error: 'Not found' }, { status: 404 });
       return NextResponse.json({ post: post[0] });
     }
-
     if (type === 'toggles') {
       const toggles = await db.select().from(pageToggles);
       const tMap: Record<string, boolean> = {};
       for (const t of toggles) tMap[t.pageKey] = t.enabled;
+      const settings = await getAllSettings();
+      if (settings.support_enabled === 'false') tMap['support'] = false;
       return NextResponse.json(tMap);
     }
-
     return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });

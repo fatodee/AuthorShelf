@@ -6,6 +6,8 @@ interface FooterProps {
   toggles: Record<string, boolean>;
 }
 export default function Footer({ siteName, footerText, author, toggles }: FooterProps) {
+  // Only show social links that have actual URLs (not empty, not null, not just whitespace)
+  const isValidUrl = (url?: string | null) => url && url.trim().length > 0;
   const socials = [
     { key: 'facebook', icon: 'fa-brands fa-facebook-f', url: author?.facebookUrl },
     { key: 'instagram', icon: 'fa-brands fa-instagram', url: author?.instagramUrl },
@@ -13,7 +15,7 @@ export default function Footer({ siteName, footerText, author, toggles }: Footer
     { key: 'linkedin', icon: 'fa-brands fa-linkedin-in', url: author?.linkedinUrl },
     { key: 'youtube', icon: 'fa-brands fa-youtube', url: author?.youtubeUrl },
     { key: 'website', icon: 'fa-solid fa-globe', url: author?.websiteUrl },
-  ].filter(s => s.url);
+  ].filter(s => isValidUrl(s.url));
   return (
     <footer className="site-footer">
       <div className="footer-inner">
