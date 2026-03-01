@@ -10,7 +10,7 @@ export default function BookCard({ book }: BookCardProps) {
       <div className="card h-full flex flex-col">
         {book.featured && <div className="card-badge"><i className="fa-solid fa-star mr-1"></i>Featured</div>}
         {book.coverImage ? (
-          <img src={book.coverImage} alt={book.title} className="card-cover" loading="lazy" />
+          <img src={book.coverImage} alt={book.title} className="card-cover" />
         ) : (
           <div className="card-cover-empty"><i className="fa-solid fa-book-open"></i></div>
         )}
