@@ -2,8 +2,12 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { media } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-export const dynamic = 'force-dynamic';
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+// Allow Vercel CDN to cache served images (don't use force-dynamic!)
+export const revalidate = 31536000; // 1 year
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
     const id = parseInt(params.id);
     if (isNaN(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
@@ -21,6 +25,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
           'Content-Type': mimeType,
           'Content-Length': buffer.length.toString(),
           'Cache-Control': 'public, max-age=31536000, immutable',
+          'CDN-Cache-Control': 'public, max-age=31536000, immutable',
+          'Vercel-CDN-Cache-Control': 'public, max-age=31536000, immutable',
         },
       });
     }
