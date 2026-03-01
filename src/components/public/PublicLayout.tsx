@@ -6,7 +6,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    fetch('/api/public?type=home')
+    fetch('/api/public?type=layout')
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));

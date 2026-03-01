@@ -97,11 +97,17 @@ export async function GET() {
     for (const [key, value] of Object.entries(settingsData)) {
       await db.insert(siteSettings).values({ key, value });
     }
-    // Author profile
+    // Author profile — no social links by default
     await db.insert(authorProfile).values({
       name: 'Site Author',
-      bio: `<p>Welcome! I'm the author behind this platform.</p><p>I write stories that explore the full spectrum of human experience — from desire and heartbreak to self-discovery and societal truths. My work spans multiple genres including romance, storytelling, and reflective essays that challenge how we think about love, identity, and the world around us.</p><p>I believe in the power of storytelling to heal, provoke, and connect. So stick around, read something that moves you, and let's create beautiful written memories together.</p>`,
-      achievements: `<ul><li>Creator of an independent creative writing platform</li><li>Published stories spanning multiple genres: Romance, Storytelling, Self-Discovery</li><li>Building a dedicated readership through authentic storytelling</li><li>Featured storyteller across multiple categories</li></ul>`,
+      bio: '<p>Welcome! I\'m the author behind this platform.</p><p>I write stories that explore the full spectrum of human experience — from desire and heartbreak to self-discovery and societal truths. My work spans multiple genres including romance, storytelling, and reflective essays that challenge how we think about love, identity, and the world around us.</p><p>I believe in the power of storytelling to heal, provoke, and connect. So stick around, read something that moves you, and let\'s create beautiful written memories together.</p>',
+      achievements: '<ul><li>Creator of an independent creative writing platform</li><li>Published stories spanning multiple genres: Romance, Storytelling, Self-Discovery</li><li>Building a dedicated readership through authentic storytelling</li><li>Featured storyteller across multiple categories</li></ul>',
+      facebookUrl: '',
+      instagramUrl: '',
+      xUrl: '',
+      linkedinUrl: '',
+      youtubeUrl: '',
+      websiteUrl: '',
     });
     // Categories — matching WordPress exactly
     const catData = [
