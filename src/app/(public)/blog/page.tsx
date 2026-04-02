@@ -12,12 +12,12 @@ export default function BlogPage() {
     <div className="page-container fade-in">
       <h1 className="section-title text-3xl mb-8"><i className="fa-solid fa-pen-nib"></i>Blog</h1>
       {posts.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-in">
           {posts.map((p: any) => (
             <Link key={p.id} href={`/blog/${p.slug}`}>
               <article className="card h-full flex flex-col">
                 {p.featuredImage ? (
-                  <img src={p.featuredImage} alt={p.title} className="w-full h-48 object-cover" loading="lazy" />
+                  <img src={p.featuredImage} alt={p.title} className="w-full h-48 object-cover" />
                 ) : (
                   <div className="w-full h-48 flex items-center justify-center text-3xl" style={{ background: 'var(--bg-alt)' }}>
                     <i className="fa-solid fa-pen-nib" style={{ color: 'var(--color-primary)', opacity: 0.3 }}></i>
