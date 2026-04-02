@@ -25,34 +25,34 @@ export default function HomePage() {
       <div className="page-container">
         {/* Featured Books */}
         {featuredBooks?.length > 0 && (
-          <section className="mb-12">
+          <section className="mb-12 slide-up" style={{ animationDelay: '.1s' }}>
             <div className="section-header">
               <h2 className="section-title"><i className="fa-solid fa-star"></i>Featured</h2>
               {toggles?.books !== false && <Link href="/books" className="section-link">View all <i className="fa-solid fa-arrow-right"></i></Link>}
             </div>
-            <div className="book-grid">
+            <div className="book-grid stagger-in">
               {featuredBooks.map((b: any) => <BookCard key={b.id} book={b} />)}
             </div>
           </section>
         )}
         {/* Latest Books */}
         {latestBooks?.length > 0 && (
-          <section className="mb-12">
+          <section className="mb-12 slide-up" style={{ animationDelay: '.2s' }}>
             <div className="section-header">
               <h2 className="section-title"><i className="fa-solid fa-clock"></i>Latest</h2>
             </div>
-            <div className="book-grid">
+            <div className="book-grid stagger-in">
               {latestBooks.map((b: any) => <BookCard key={b.id} book={b} />)}
             </div>
           </section>
         )}
         {/* Latest Chapters */}
         {latestChapters?.length > 0 && (
-          <section className="mb-12">
+          <section className="mb-12 slide-up" style={{ animationDelay: '.3s' }}>
             <div className="section-header">
               <h2 className="section-title"><i className="fa-solid fa-file-lines"></i>Recent Chapters</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-in">
               {latestChapters.map((c: any) => (
                 <Link key={c.id} href={`/book/${c.bookSlug}/${c.slug}`} className="blog-card flex gap-4">
                   {c.chapterImage && <img src={c.chapterImage} alt="" className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />}
@@ -68,12 +68,12 @@ export default function HomePage() {
         )}
         {/* Categories */}
         {toggles?.categories !== false && categories?.length > 0 && (
-          <section className="mb-12">
+          <section className="mb-12 slide-up" style={{ animationDelay: '.35s' }}>
             <div className="section-header">
               <h2 className="section-title"><i className="fa-solid fa-folder"></i>Categories</h2>
               <Link href="/categories" className="section-link">View all <i className="fa-solid fa-arrow-right"></i></Link>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 stagger-in">
               {categories.map((c: any) => (
                 <Link key={c.id} href={`/category/${c.slug}`} className="pill-outline">{c.name}</Link>
               ))}
@@ -82,7 +82,7 @@ export default function HomePage() {
         )}
         {/* Author */}
         {toggles?.author !== false && author && (
-          <section className="mb-12">
+          <section className="mb-12 slide-up" style={{ animationDelay: '.4s' }}>
             <div className="blog-card flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
               {author.photo && <img src={author.photo} alt={author.name} className="author-photo flex-shrink-0" />}
               <div>

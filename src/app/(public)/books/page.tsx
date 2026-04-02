@@ -27,7 +27,7 @@ export default function BooksPage() {
       {loading ? (
         <div className="page-loader"><i className="fa-solid fa-spinner fa-spin text-3xl" style={{ color: 'var(--color-primary)' }}></i></div>
       ) : data?.books?.length > 0 ? (
-        <div className="book-grid">{data.books.map((b: any) => <BookCard key={b.id} book={b} />)}</div>
+        <div className="book-grid stagger-in">{data.books.map((b: any) => <BookCard key={b.id} book={b} />)}</div>
       ) : (
         <div className="empty-state"><i className="fa-solid fa-book-open"></i><p>No books found.</p></div>
       )}

@@ -6,6 +6,7 @@ export default function AuthorPage() {
   useEffect(() => { fetch('/api/public?type=author').then(r => r.json()).then(d => { setAuthor(d.author); setLoading(false); }); }, []);
   if (loading) return <div className="page-loader"><i className="fa-solid fa-spinner fa-spin text-3xl" style={{ color: 'var(--color-primary)' }}></i></div>;
   if (!author) return <div className="page-container empty-state"><i className="fa-solid fa-user"></i><p>Author profile not set up yet.</p></div>;
+  const isValidUrl = (url?: string | null) => url && url.trim().length > 0;
   const socials = [
     { key: 'facebook', icon: 'fa-brands fa-facebook-f', url: author.facebookUrl },
     { key: 'instagram', icon: 'fa-brands fa-instagram', url: author.instagramUrl },
@@ -13,7 +14,7 @@ export default function AuthorPage() {
     { key: 'linkedin', icon: 'fa-brands fa-linkedin-in', url: author.linkedinUrl },
     { key: 'youtube', icon: 'fa-brands fa-youtube', url: author.youtubeUrl },
     { key: 'website', icon: 'fa-solid fa-globe', url: author.websiteUrl },
-  ].filter(s => s.url);
+  ].filter(s => isValidUrl(s.url));
   return (
     <div className="page-container fade-in">
       <div className="page-narrow text-center">
